@@ -1,5 +1,12 @@
 # NovaMind RAG
 
+<p align="center">
+  <a href="https://github.com/CJX0712/novamind-rag/actions/workflows/ci.yml"><img src="https://github.com/CJX0712/novamind-rag/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://github.com/CJX0712/novamind-rag/releases"><img src="https://img.shields.io/github/v/release/CJX0712/novamind-rag?sort=semver" alt="release"></a>
+  <a href="https://github.com/CJX0712/novamind-rag/blob/main/LICENSE"><img src="https://img.shields.io/github/license/CJX0712/novamind-rag" alt="license"></a>
+  <img src="https://img.shields.io/badge/author-%E6%99%A8%E6%98%9F-1f6feb" alt="author">
+</p>
+
 > 端到端本地知识库问答系统：混合检索（FAISS 向量 ∪ BM25）+ 融合重排（ONNX cross-encoder）+ ReAct Agent + 本地 GGUF 生成。全开源组件，CPU 可跑，离线可验证。
 >
 > 作者：晨星 · License：MIT
