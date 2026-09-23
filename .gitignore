@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Models (downloaded separately, never committed)
+models/
+*.gguf
+*.onnx
+
+# Data / runtime artifacts
+data/index/
+data/.pytest-tmp/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Node (if any tooling)
+node_modules/

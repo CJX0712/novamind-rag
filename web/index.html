@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaMind RAG 控制台</title>
+<style>
+:root {
+  --color-primary: #4F46E5;
+  --color-primary-hover: #4338CA;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-text: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand svg { color: var(--color-primary); }
+.brand h1 { font-size: 17px; font-weight: 650; letter-spacing: 0.2px; }
+.brand span { font-size: 12px; color: var(--color-text-secondary); }
+.health { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-secondary); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); }
+.dot.degraded { background: var(--color-warning); }
+.dot.down { background: var(--color-error); }
+main {
+  flex: 1;
+  max-width: 880px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.panel-head {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.panel-head svg { color: var(--color-primary); flex: none; }
+.panel-body { padding: 16px 18px; }
+#chat-log { display: flex; flex-direction: column; gap: 14px; min-height: 220px; }
+.msg { display: flex; gap: 10px; }
+.msg .avatar {
+  width: 28px; height: 28px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center; flex: none;
+  border: 1px solid var(--color-border);
+}
+.msg.user .avatar { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.msg.assistant .avatar { background: var(--color-surface); color: var(--color-primary); }
+.msg .bubble {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg.user .bubble { background: #EEF2FF; }
+.msg.assistant .bubble { background: var(--color-bg); border: 1px solid var(--color-border); }
+.tool-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin: 4px 6px 0 0;
+}
+.tool-chip svg { color: var(--color-primary); }
+.sources { margin-top: 10px; border-top: 1px dashed var(--color-border); padding-top: 10px; }
+.source-item {
+  font-size: 12.5px; color: var(--color-text-secondary);
+  padding: 6px 10px; border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  margin-top: 6px;
+}
+.source-item code { color: var(--color-primary); font-size: 11.5px; }
+.composer { display: flex; gap: 10px; }
+.composer input {
+  flex: 1;
+  padding: 11px 14px;
+  font-size: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  font-family: var(--font-family);
+}
+.composer input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12); }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 11px 18px;
+  font-size: 14px; font-weight: 600;
+  border: none; border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: var(--font-family);
+}
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-ghost {
+  background: var(--color-surface); color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+.btn-ghost:hover { background: var(--color-bg); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+textarea {
+  width: 100%; min-height: 84px; resize: vertical;
+  padding: 10px 12px; font-size: 13.5px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  font-family: var(--font-family); outline: none;
+}
+textarea:focus { border-color: var(--color-primary); }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat {
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 12px 14px;
+}
+.stat .label { font-size: 12px; color: var(--color-text-secondary); }
+.stat .value { font-size: 20px; font-weight: 700; margin-top: 2px; }
+.muted { font-size: 12.5px; color: var(--color-text-secondary); line-height: 1.6; }
+.empty { text-align: center; color: var(--color-text-secondary); font-size: 13.5px; padding: 40px 0; }
+.empty svg { display: block; margin: 0 auto 10px; color: var(--color-border); }
+footer { text-align: center; padding: 18px; font-size: 12px; color: var(--color-text-secondary); }
+.loading { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.2-2.6 5.6-.9.9-1.4 2.1-1.4 3.4H9c0-1.3-.5-2.5-1.4-3.4C6.2 13.2 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+    <div>
+      <h1>NovaMind RAG 控制台</h1>
+      <span>本地知识库问答 · 混合检索 · 融合重排 · ReAct Agent</span>
+    </div>
+  </div>
+  <div class="health" id="health">
+    <span class="dot down" id="health-dot"></span>
+    <span id="health-text">连接中…</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="panel-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      知识库问答
+    </div>
+    <div class="panel-body">
+      <div id="chat-log">
+        <div class="empty" id="empty-hint">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          先在下方摄取文档，然后提问。系统会检索知识库并给出带引用的回答。
+        </div>
+      </div>
+      <div class="composer" style="margin-top:16px">
+        <input id="question" type="text" placeholder="输入问题，回车发送" autocomplete="off">
+        <button class="btn btn-primary" id="btn-ask" onclick="ask()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+          发送
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+      文档摄取
+    </div>
+    <div class="panel-body">
+      <textarea id="ingest-text" placeholder="粘贴文档内容（TXT / Markdown 文本）"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-ghost" onclick="ingest()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M12 12v9"/><path d="m8 17 4-4 4 4"/></svg>
+          摄取入库
+        </button>
+        <span class="muted" id="ingest-result"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      系统状态与评测
+    </div>
+    <div class="panel-body">
+      <div class="stat-grid">
+        <div class="stat"><div class="label">索引分块数</div><div class="value" id="stat-chunks">—</div></div>
+        <div class="stat"><div class="label">recall@5</div><div class="value" id="stat-recall">—</div></div>
+        <div class="stat"><div class="label">MRR</div><div class="value" id="stat-mrr">—</div></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-ghost" onclick="refreshHealth()">刷新状态</button>
+        <button class="btn btn-ghost" onclick="runEval()">运行黄金集评测</button>
+        <button class="btn btn-ghost" onclick="resetIndex()">清空索引</button>
+      </div>
+      <p class="muted" style="margin-top:10px" id="backend-info"></p>
+    </div>
+  </section>
+</main>
+
+<footer>NovaMind RAG v1.0.0 · 作者：晨星 · 全开源组件构建</footer>
+
+<script>
+const API = location.origin.startsWith("http") && location.port !== ""
+  ? "http://127.0.0.1:8000" : "http://127.0.0.1:8000";
+
+const ICON_USER = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+const ICON_BOT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h.01M15 9h.01M9 15h6"/></svg>';
+const ICON_TOOL = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>';
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function addMsg(role, html) {
+  const log = document.getElementById("chat-log");
+  const hint = document.getElementById("empty-hint");
+  if (hint) hint.remove();
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.innerHTML = `<div class="avatar">${role === "user" ? ICON_USER : ICON_BOT}</div><div class="bubble">${html}</div>`;
+  log.appendChild(div);
+  div.scrollIntoView({ behavior: "smooth", block: "end" });
+  return div.querySelector(".bubble");
+}
+
+async function refreshHealth() {
+  try {
+    const r = await fetch(API + "/health");
+    const d = await r.json();
+    const dot = document.getElementById("health-dot");
+    dot.className = "dot" + (d.status === "ok" ? "" : " degraded");
+    document.getElementById("health-text").textContent =
+      d.status === "ok" ? "全部后端正常" : "部分后端已回退兜底";
+    document.getElementById("stat-chunks").textContent = d.chunks;
+    document.getElementById("backend-info").textContent =
+      Object.entries(d.backends).map(([k, b]) =>
+        `${k}: ${b.name}${b.error ? "（回退：" + b.error.slice(0, 40) + "）" : ""}`
+      ).join("　|　");
+  } catch (e) {
+    document.getElementById("health-dot").className = "dot down";
+    document.getElementById("health-text").textContent = "API 未连接（请先启动服务）";
+  }
+}
+
+async function ask() {
+  const input = document.getElementById("question");
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = "";
+  addMsg("user", esc(q));
+  const bubble = addMsg("assistant", '<span class="loading"></span> 检索与生成中…');
+  document.getElementById("btn-ask").disabled = true;
+  try {
+    const r = await fetch(API + "/rag/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q, top_k: 5 })
+    });
+    const d = await r.json();
+    let html = esc(d.answer);
+    if (d.sources && d.sources.length) {
+      html += '<div class="sources"><span class="muted">来源引用：</span>';
+      for (const s of d.sources) {
+        html += `<div class="source-item"><code>${esc(s.chunk_id)}</code> · 文档 ${esc(s.doc_id)} · 得分 ${s.final_score}<br>${esc(s.text.slice(0, 120))}…</div>`;
+      }
+      html += "</div>";
+    }
+    bubble.innerHTML = html;
+  } catch (e) {
+    bubble.textContent = "请求失败：" + e.message + "（请确认 API 服务已启动）";
+  } finally {
+    document.getElementById("btn-ask").disabled = false;
+  }
+}
+
+async function ingest() {
+  const text = document.getElementById("ingest-text").value.trim();
+  if (!text) return;
+  const out = document.getElementById("ingest-result");
+  out.textContent = "摄取中…";
+  try {
+    const r = await fetch(API + "/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+    const d = await r.json();
+    if (r.ok) {
+      out.textContent = `已入库：文档 ${d.doc_id}，共 ${d.chunks} 个分块`;
+      document.getElementById("ingest-text").value = "";
+      refreshHealth();
+    } else {
+      out.textContent = "摄取失败：" + (d.detail || r.status);
+    }
+  } catch (e) {
+    out.textContent = "请求失败：" + e.message;
+  }
+}
+
+async function runEval() {
+  document.getElementById("stat-recall").textContent = "…";
+  document.getElementById("stat-mrr").textContent = "…";
+  try {
+    const r = await fetch(API + "/eval", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ k: 5 })
+    });
+    const d = await r.json();
+    document.getElementById("stat-recall").textContent = d.recall_at_k;
+    document.getElementById("stat-mrr").textContent = d.mrr;
+  } catch (e) {
+    document.getElementById("stat-recall").textContent = "失败";
+    document.getElementById("stat-mrr").textContent = "失败";
+  }
+}
+
+async function resetIndex() {
+  if (!confirm("确认清空生产索引？此操作不可撤销。")) return;
+  try {
+    const r = await fetch(API + "/reset", { method: "POST" });
+    const d = await r.json();
+    alert("已清空 " + d.cleared + " 个分块");
+    refreshHealth();
+  } catch (e) {
+    alert("请求失败：" + e.message);
+  }
+}
+
+document.getElementById("question").addEventListener("keydown", e => {
+  if (e.key === "Enter") ask();
+});
+refreshHealth();
+</script>
+</body>
+</html>

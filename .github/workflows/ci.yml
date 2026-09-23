@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  offline-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install core deps (zero-compile)
+        run: pip install -r requirements.txt
+      - name: P0 gate - no emoji as UI icons
+        run: python tools/scan_emoji.py
+      - name: Unit tests
+        run: python -m pytest -q tests -p no:cacheprovider
+      - name: Offline end-to-end verify
+        run: python verify.py
+        env:
+          NOVAMIND_OFFLINE: "1"

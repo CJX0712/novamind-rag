@@ -1,0 +1,5 @@
+# 可选：本地 GGUF 生成（llama-cpp-python）。
+# 注意：PyPI 上 llama-cpp-python 无 Windows 预编译 wheel，Windows 干净环境安装需
+# MSVC + CMake（编译约 5-10 分钟）；Linux/macOS 通常可直接构建。
+# 未安装时系统自动回退 MockLLM，其余功能不受影响（见 docs/SPEC.md 第 11 节）。
+llama-cpp-python>=0.2.90

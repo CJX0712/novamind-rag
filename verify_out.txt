@@ -1,0 +1,16 @@
+=== NovaMind 全链路自检（offline）===
+[PASS] 配置加载 - threads=4
+[PASS] 中英文分词 - tokens=15
+[PASS] 计算器拒绝危险表达式
+  后端: {"embedder": {"name": "hash-bigram", "error": "offline mode"}, "store": {"name": "memory-cosine", "error": "offline mode"}, "reranker": {"name": "noop", "error": "offline mode"}, "llm": {"name": "mock-template", "error": "offline mode"}}
+[PASS] 离线模式管道可用
+[PASS] 摄取分块 - chunks=1
+[PASS] 检索命中 - top1_score=0.5000
+[PASS] 问答非空且带引用
+[PASS] 融合重排：粗排强者不被重排盖掉 - order=['c0', 'c1', 'c2']
+[PASS] Agent 计算走 calculator 工具
+[PASS] 评测 recall@5 达标 - recall=1.0 mrr=1.0
+[PASS] 评测与生产索引隔离 - recall1=1.0 recall2=1.0
+[PASS] API 冒烟（/health /ingest /rag/query） - health=200 ingest=200 query=200
+
+=== 汇总: passed=12 failed=0 用时 1.4s ===

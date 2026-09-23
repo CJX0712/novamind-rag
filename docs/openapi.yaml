@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: NovaMind RAG API
+  version: 1.0.0
+  description: 本地知识库问答系统 API（混合检索 + 融合重排 + ReAct Agent）。作者：晨星
+servers:
+  - url: http://localhost:8000
+paths:
+  /health:
+    get:
+      summary: 健康检查（含各后端真实状态）
+      responses:
+        "200":
+          description: 系统状态
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok, degraded] }
+                  backends:
+                    type: object
+                    properties:
+                      embedder: { $ref: "#/components/schemas/BackendStatus" }
+                      store: { $ref: "#/components/schemas/BackendStatus" }
+                      reranker: { $ref: "#/components/schemas/BackendStatus" }
+                      llm: { $ref: "#/components/schemas/BackendStatus" }
+  /ingest:
+    post:
+      summary: 摄取文档（text 直传或本地 path）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string }
+                path: { type: string }
+                doc_id: { type: string }
+      responses:
+        "200":
+          description: 摄取结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  doc_id: { type: string }
+                  chunks: { type: integer }
+        "400": { description: text/path 均缺失 }
+  /rag/query:
+    post:
+      summary: 检索问答
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string }
+                top_k: { type: integer, default: 5 }
+                use_agent: { type: boolean, default: false }
+      responses:
+        "200":
+          description: 回答与来源
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer: { type: string }
+                  sources:
+                    type: array
+                    items: { $ref: "#/components/schemas/Source" }
+                  trace:
+                    type: object
+                    nullable: true
+  /chat:
+    post:
+      summary: Agent 对话
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string }
+                session_id: { type: string }
+      responses:
+        "200":
+          description: Agent 回复
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply: { type: string }
+                  tool_calls:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tool: { type: string }
+                        input: { type: string }
+                        output_preview: { type: string }
+  /eval:
+    post:
+      summary: 黄金集评测（独立索引，不触生产数据）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                k: { type: integer, default: 5 }
+      responses:
+        "200":
+          description: 评测指标
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recall_at_k: { type: number }
+                  mrr: { type: number }
+                  per_query:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        query: { type: string }
+                        hit: { type: boolean }
+                        rank: { type: integer, nullable: true }
+  /reset:
+    post:
+      summary: 清空生产索引
+      responses:
+        "200":
+          description: 清空结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cleared: { type: integer }
+components:
+  schemas:
+    BackendStatus:
+      type: object
+      properties:
+        name: { type: string }
+        error: { type: string, nullable: true, description: "非 None 表示已回退兜底实现" }
+    Source:
+      type: object
+      properties:
+        chunk_id: { type: string }
+        doc_id: { type: string }
+        text: { type: string }
+        final_score: { type: number }
