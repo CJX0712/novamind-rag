@@ -1,0 +1,12 @@
+backends: {"embedder": {"name": "onnx-bge", "error": null}, "store": {"name": "faiss-flatip", "error": null}, "reranker": {"name": "onnx-reranker", "error": null}, "llm": {"name": "llama-cpp-gguf", "error": null}}
+answer: NovaMind 采用了混合检索与融合重排的技术。
+chat reply: 50.0
+eval: 1.0 1.0
+[PASS] 服务就绪
+[PASS] health 200
+[PASS] ingest 200 且 chunks>0
+[PASS] rag/query 有答案有来源
+[PASS] chat calculator
+[PASS] eval recall>=0.75
+[PASS] 错误流: 空摄取返回 400
+=== 冒烟汇总: passed=7 failed=0 ===

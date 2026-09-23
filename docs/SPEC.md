@@ -127,6 +127,7 @@ python verify.py --online   # 可选：真实模型路径验证
 uvicorn novamind.api.server:app --port 8000
 curl -X POST localhost:8000/ingest -H "Content-Type: application/json" -d '{"text":"...","doc_id":"d1"}'
 curl -X POST localhost:8000/rag/query -H "Content-Type: application/json" -d '{"query":"..."}'
+python scripts/smoke_live.py  # 真实进程冒烟：自动起服务、跑成功流+错误流、退出码判定
 ```
 
 ## 13. 变更记录

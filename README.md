@@ -73,6 +73,8 @@ curl -X POST localhost:8000/rag/query -H "Content-Type: application/json" \
 ```bash
 python -m pytest -q tests -p no:cacheprovider   # 15 项单测
 python verify.py                                 # 12 项全链路自检（离线）
+python verify.py --online                        # 12 项全链路自检（真实模型）
+python scripts/smoke_live.py                     # 7 项真实进程冒烟（uvicorn + HTTP）
 python tools/scan_emoji.py                       # P0 门禁：禁 emoji 功能图标
 ```
 

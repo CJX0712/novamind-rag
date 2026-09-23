@@ -1,0 +1,6 @@
+=== RAW OUTPUT ===
+Final Answer: 12*(3+4) = 72
+=== AGENT RESULT ===
+reply: 84.0
+tools: [('calculator', '12*(3+4)', '84.0')]
+llama_context: n_ctx_seq (2048) < n_ctx_train (32768) -- the full capacity of the model will not be utilized

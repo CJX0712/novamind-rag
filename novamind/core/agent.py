@@ -149,7 +149,22 @@ class ReActAgent:
             return self._rule_based(message)
 
         calls: list[ToolCall] = []
+        # 确定性前置路由：明确算术表达式先走 calculator，把结果作为 Observation
+        # 注入对话——小模型路由不可靠时，正确性由工具保证，不由模型自觉保证。
         conversation = message
+        expr_m = re.search(r"[\d][\d\s+\-*/().%]+[\d)]", message)
+        if expr_m:
+            expr = expr_m.group(0).strip()
+            try:
+                calc_out = self.toolbox.tools["calculator"][1](expr)
+                calls.append(ToolCall("calculator", expr, calc_out))
+                conversation += (
+                    f"\nObservation: calculator({expr}) = {calc_out}\n"
+                    "请基于该计算结果给出 Final Answer（必须使用此数值，禁止自行重算）。"
+                )
+            except ValueError:
+                pass
+
         for _ in range(self.max_steps):
             out = self.llm.generate(
                 [
